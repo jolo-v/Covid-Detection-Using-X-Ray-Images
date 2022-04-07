@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tqdm import tqdm
-from Image_recog import load_data
+from Covid_Detection_XRay import load_data
 
 
 #Read metadata data

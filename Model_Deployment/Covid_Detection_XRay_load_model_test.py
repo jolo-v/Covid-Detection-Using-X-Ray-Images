@@ -16,11 +16,13 @@ from Covid_Detection_XRay import load_data
 #Read metadata data
 raw_test_data = pd.read_csv('chestxray_corona_test_metadata.csv')
 raw_test_data.groupby('Final_Label').size()
+
 #Prepare indexes
 covid_test = raw_test_data.loc[raw_test_data['Final_Label']=='Pnemonia_Virus_COVID-19',['X_ray_image_name']]
 covid_test.reset_index(level=None,inplace=True,drop=True)
 noncovid_test = raw_test_data.loc[raw_test_data['Final_Label']!='Pnemonia_Virus_COVID-19',['X_ray_image_name']]
 noncovid_test.reset_index(level=None,inplace=True,drop=True)
+
 #get images
 X_test_covid = load_data('Coronahack-Chest-XRay-Dataset/Coronahack-Chest-XRay-Dataset/train/',covid_test['X_ray_image_name'])
 X_test_noncovid = load_data('Coronahack-Chest-XRay-Dataset/Coronahack-Chest-XRay-Dataset/test/',noncovid_test['X_ray_image_name'])
@@ -36,15 +38,18 @@ y_train_onehot.columns = pd.get_dummies(y_train).columns
 y_test = raw_test_data['Final_Label']
 y_test_onehot = pd.DataFrame(lb.transform(y_test))
 y_test_onehot.columns = pd.get_dummies(y_train).columns
+
 #Load model and test on data
 loaded_model = tf.keras.models.load_model('./Image_Recog')
 y_pred = loaded_model.predict(X_test_final)
 y_pred = pd.DataFrame(y_pred)
 y_pred.columns = y_test_onehot.columns
 ypred_final = y_pred.idxmax(axis='columns')
+
 #Evaluate accuracy
 from sklearn.metrics import accuracy_score
 accuracy_score(y_true=raw_test_data['Final_Label'],y_pred=ypred_final)
+
 #Evaluate precision and recall
 from sklearn.metrics import precision_recall_fscore_support as prfs
 x = prfs(y_true=y_test,y_pred=ypred_final,
@@ -58,6 +63,7 @@ recall = pd.DataFrame(recall, index=pd.get_dummies(y_train).columns,
 frequency = x[3]
 frequency = pd.DataFrame(frequency, index=pd.get_dummies(y_train).columns,
                          columns=['Frequency'])
+
 #Merge into one dataframe
 results = pd.concat([precision,recall,frequency],axis=1,join='inner')
 results.reset_index(level=None,inplace=True)
